@@ -57,6 +57,7 @@ namespace naucon
             int iBits = 16;
             int iVol = 100;
             WaveInType waveInType = WaveInType.WaveIn;
+            bool isSilentPlay = false;
             bool isHead = true;
             bool isHelp = false;
             bool isTest = false;
@@ -81,14 +82,17 @@ namespace naucon
                                 case "-v":
                                     sw = arg;
                                     break;
+                                case "-s":
+                                    isSilentPlay = true;
+                                    break;
                                 case "-N":
                                     isHead = false;
                                     break;
-                                case "-test":
+                                case "--test":
                                     isTest = true;
                                     break;
-                                case "--h":
-                                case "--v":
+                                case "--help":
+                                case "--version":
                                     isHelp = true;
                                     break;
                                 default:
@@ -148,7 +152,7 @@ namespace naucon
 
             if (isHead)
             {
-                message("naucon v0.0.0.0.0.1");
+                message("naucon v0.0.0.0.0.3");
                 message("auther takumi.");
                 message("copyright libraplanet.");
                 message("license n/a");
@@ -189,10 +193,11 @@ namespace naucon
                 message("                                e.g.) 16");
                 message("-v [n]                        volume. 100 = 100%");
                 message("                                e.g.) 16");
+                message("-s                            use with silent play.");
                 message("-N                            no output head message.");
-                message("-test                         argument test (no recording).");
-                message("--h                           view help.");
-                message("--v                           view version.");
+                message("--test                        argument test (no recording).");
+                message("--help                        view help.");
+                message("--version                     view version.");
                 message("");
             }
             else
@@ -202,6 +207,7 @@ namespace naucon
                 bool isActive = true;
                 IWaveIn waveIn;
                 WaveFormat outWaveFormat = new WaveFormat(iSampleRate, iBits, iCh);
+                
 
                 //init
                 {
@@ -226,6 +232,7 @@ namespace naucon
                     message(string.Format("  ch             {0} ch", new object[] { outWaveFormat.Channels }));
                     message(string.Format("  bits           {0} bit", new object[] { outWaveFormat.BitsPerSample }));
                     message(string.Format("  encoding       {0}", new object[] { outWaveFormat.Encoding }));
+                    message(string.Format("  silent play    {0}", new object[] { isSilentPlay }));
                     message("");
                 }
 
@@ -278,6 +285,15 @@ namespace naucon
 
                 if (!isTest)
                 {
+                    // silent play
+                    if(isSilentPlay)
+                    {
+                        SilenceProvider silenceProvider = new SilenceProvider(new WaveFormat());
+                        IWavePlayer wavePlayer = new WaveOut();
+                        wavePlayer.Init(silenceProvider);
+                        wavePlayer.Play();
+                    }
+
                     waveIn.StartRecording();
                     while (true)
                     {
